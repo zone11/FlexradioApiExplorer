@@ -26,6 +26,14 @@ public struct PingsView: View {
     }
     return "Unknown Radio"
   }
+
+  var intervals: [Double] {
+    if let selection = viewModel.api.activeSelection,
+       let radio = viewModel.api.radios.first(where: { $0.id == selection.radioId }) {
+      return radio.intervals
+    }
+    return []
+  }
   
   func average(_ intervals: [Double]) -> Int {
     guard !intervals.isEmpty else { return 0 }
@@ -77,15 +85,15 @@ public struct PingsView: View {
               Text(radioName)
                 .frame(maxWidth: .infinity, alignment: .leading)
               
-              Text(average(viewModel.api.pingIntervals), format: .number)
+              Text(average(intervals), format: .number)
                 .monospacedDigit()
-                .foregroundColor(average(viewModel.api.pingIntervals) > 100 ? .red : nil)
+                .foregroundColor(average(intervals) > 100 ? .red : nil)
                 .frame(maxWidth: .infinity, alignment: .trailing)
               
               
-              Text(peak(viewModel.api.pingIntervals), format: .number)
+              Text(peak(intervals), format: .number)
                 .monospacedDigit()
-                .foregroundColor(peak(viewModel.api.pingIntervals) > 100 ? .red : nil)
+                .foregroundColor(peak(intervals) > 100 ? .red : nil)
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
           }

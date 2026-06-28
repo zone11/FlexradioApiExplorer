@@ -150,8 +150,10 @@ extension View {
             viewModel.alertInfo = AlertInfo("No Connection", "Please connect to a radio")
             viewModel.activeSheet = .simpleAlert
           } else {
-            viewModel.api.pingIntervalIndex = 0
-            viewModel.api.pingIntervals = Array(repeating: 0, count: 60)
+            if let radio = viewModel.api.radios.first(where: { $0.id == viewModel.api.activeSelection?.radioId }) {
+              radio.intervalIndex = 0
+              radio.intervals = Array(repeating: 0, count: 60)
+            }
             viewModel.activeSheet = .pings
           }
         }
@@ -190,4 +192,3 @@ extension View {
     .padding(10)
 #endif
 }
-

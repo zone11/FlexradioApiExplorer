@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-import ApiPackage
+@preconcurrency import ApiPackage
 import SwiftyPing
 
 @MainActor
@@ -81,9 +81,9 @@ public class ViewModel {
     Task {
       if newValue {
         settings.directEnabled = false
-        try! await api.listenerLocal!.start(port: settings.discoveryPort)
+        await api.listenerLocal!.start(port: UInt16(settings.discoveryPort))
       } else {
-        await api.listenerLocal!.stop()
+        api.listenerLocal!.stop()
       }
     }
   }
@@ -106,20 +106,20 @@ public class ViewModel {
   
   public func initialize() async {
     if initialized == false {
-      appLog(.debug, "application started")
+      appLog(LogLevel.debug, "application started")
       
       // initialize the Messages model
       messages.reFilter()
       
       // initialize the listeners
-      api.listenerLocal = ListenerLocal(api, port: settings.discoveryPort)
+      api.listenerLocal = ListenerLocal(api)
       api.listenerSmartlink = ListenerSmartlink(api)
 
       // start Local and/or Smartlink if enabled
       if settings.localEnabled || settings.smartlinkEnabled {
         if settings.localEnabled {
           settings.directEnabled = false
-          try! await api.listenerLocal!.start(port: settings.discoveryPort)
+          await api.listenerLocal!.start(port: UInt16(settings.discoveryPort))
 
         }
         if settings.smartlinkEnabled {
@@ -199,9 +199,9 @@ public class ViewModel {
     settings.remoteRxAudioEnabled = newValue
     if isConnected {
       if newValue {
-        api.remoteRxAudioRequest(compressed: settings.remoteRxAudioCompressed)
+        api.streamRequest(.remoteRxAudioStream, isCompressed: settings.remoteRxAudioCompressed)
       } else {
-        api.remoteRxAudioRemove()
+        api.streamRemove(api.remoteRxAudio?.id)
       }
     }
   }
@@ -273,7 +273,6 @@ public class ViewModel {
       activeSheet = .picker
     }
   }
- 
   public func startSmartlinkListener()  {
     // disable direct, it is incompatable with other connection types
     settings.directEnabled = false
@@ -435,21 +434,21 @@ public class ViewModel {
       } catch {
         // connection attempt failed
         await api.disconnect()
-        appLog(.error, "Connection FAILED, error: \(error.localizedDescription)")
+        appLog(LogLevel.error, "Connection FAILED, error: \(error.localizedDescription)")
         return false
       }
     }
     isConnected = await connectTask.result.get()
     if isConnected {
-      appLog(.info, "Connection SUCCEEDED, ID <\(selection.radioId)>")
+      appLog(LogLevel.info, "Connection SUCCEEDED, ID <\(selection.radioId)>")
       
       // start mac audio if enabled
       if settings.remoteRxAudioEnabled {
-        api.sendTcp(RemoteRxAudio.create(compressed: settings.remoteRxAudioCompressed))
+        api.streamRequest(.remoteRxAudioStream, isCompressed: settings.remoteRxAudioCompressed)
       }
       
     } else {
-      appLog(.debug, "Connection FAILED, ID <\(selection.radioId)>")
+      appLog(LogLevel.debug, "Connection FAILED, ID <\(selection.radioId)>")
     }
   }
   
@@ -467,7 +466,7 @@ public class ViewModel {
       }
       
     } else {
-      appLog(.error, "Radio not found, ID <\(selection.radioId)>")
+      appLog(LogLevel.error, "Radio not found, ID <\(selection.radioId)>")
     }
   }
   
@@ -508,4 +507,3 @@ public struct SaveDocument: FileDocument {
       return FileWrapper(regularFileWithContents: data)
   }
 }
-

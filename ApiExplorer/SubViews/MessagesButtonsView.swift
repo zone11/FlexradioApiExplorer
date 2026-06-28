@@ -63,9 +63,9 @@ public struct MessagesButtonsView: View {
     .fileExporter(isPresented: $isSaving, document: document, contentType: .plainText, defaultFilename: "ApiExplorer.log") { result in
       switch result {
       case .success(let url):
-        apiLog(.info, "ApiExplorer: Log Exported to \(url)")
+        appLog(.info, "ApiExplorer: Log Exported to \(url)")
       case .failure(let error):
-        apiLog(.warning, "ApiExplorer: Log Export failed, \(error)") 
+        appLog(.warning, "ApiExplorer: Log Export failed, \(error)")
       }
     }
   }
@@ -176,4 +176,3 @@ public struct StepperX: View {
 //#endif
 //  }
 //}
-

@@ -18,7 +18,7 @@ public struct DiscoveryView: View {
   @Environment(ViewModel.self) private var viewModel
   @Environment(\.dismiss) var dismiss
   
-  @State var discoveryDisplayType: DiscoveryDisplayType = .vitaHeaderView
+  @State var discoveryDisplayType: DiscoveryDisplayType = .vitaHeader
   @State var radioSelection: String?
   @State var data: Data?
   
@@ -36,7 +36,7 @@ public struct DiscoveryView: View {
         }
         .labelsHidden()
         
-        if discoveryDisplayType != .vitaTimingView {
+        if discoveryDisplayType != .timing {
           Picker("Choose a Radio", selection: $radioSelection) {
             Text("--- Select a Radio ---").tag(nil as String?)
             ForEach(radios, id: \.id) { radio in
@@ -49,18 +49,18 @@ public struct DiscoveryView: View {
         }
       }
       VStack (alignment: .leading, spacing: 5) {
-        if discoveryDisplayType == .vitaTimingView {
+        if discoveryDisplayType == .timing {
           VitaTimingView()
           
         } else {
           if let index = radios.firstIndex(where: { $0.id == radioSelection }), let data = radios[index].discoveryData {
-            if discoveryDisplayType == .vitaHeaderView, let vita = Vita.decode(from: data) {
+            if discoveryDisplayType == .vitaHeader, let vita = Vita.decode(from: data) {
               VitaHeaderView(vita: vita) }
             
-            if discoveryDisplayType == .vitaPayloadView {
+            if discoveryDisplayType == .vitaPayload {
               VitaPayloadView(data: data) }
             
-            if discoveryDisplayType == .vitaHexView {
+            if discoveryDisplayType == .vitaByteMap {
               VitaHexView(data: data) }
           }
         }
@@ -352,13 +352,13 @@ private struct VitaTimingView: View {
         // Scrollable rows
         ScrollView {
           Grid(alignment: .leading, verticalSpacing: 10) {
-            ForEach(Array(viewModel.api.radios
-              .sorted(by: { $0.packet.nickname < $1.packet.nickname })
-              .enumerated()), id: \.element.id) { index, radio in
+            ForEach(viewModel.api.radios
+              .sorted(by: { $0.packet.nickname < $1.packet.nickname }), id: \.id) { (radio: Radio) in
                 
                 if radio.packet.source == .local {
                   GridRow {
                     let displayName = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
+                    let intervalPeak = radio.intervals.max() ?? 0
                     
                     Text(displayName)
                       .frame(width: 125, alignment: .leading)
@@ -380,9 +380,9 @@ private struct VitaTimingView: View {
                     }
                     .frame(width: 200, alignment: .leading)
                     
-                    Text(String(format: "%0.3f", radio.intervalPeak))
+                    Text(String(format: "%0.3f", intervalPeak))
                       .frame(maxWidth: .infinity, alignment: .trailing)
-                      .foregroundColor(radio.intervalPeak > timeLimit ? .red : nil)
+                      .foregroundColor(intervalPeak > timeLimit ? .red : nil)
                       .monospacedDigit()
                   }
                 }
@@ -432,4 +432,3 @@ private struct VitaTimingView: View {
 #Preview("DiscoveryView") {
   DiscoveryView(radioList: [])
 }
-

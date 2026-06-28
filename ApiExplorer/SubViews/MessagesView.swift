@@ -175,7 +175,7 @@ public struct IssuesPopover: View {
     .padding()
 
     .task {
-      issues = await ApiLog.shared.fetchIssues()
+      issues = await AppLog.shared.fetchIssues()
     }
   }
 }

@@ -24,7 +24,7 @@ struct TnfSubView: View {
       if !tnfs.isEmpty {
         HeaderView()
         
-        ForEach(tnfs, id: \.id) { tnf in
+        ForEach(tnfs, id: \.id) { (tnf: Tnf) in
           GridRow {
             Color.clear
               .frame(width: 40)
@@ -36,12 +36,12 @@ struct TnfSubView: View {
               .monospacedDigit()
             Text(tnf.width, format: .number)
               .monospacedDigit()
-            Text(tnf.depth.rawValue)
+            Text(tnf.depth, format: .number)
             Text(tnf.permanent ? "Y" : "N")
               .foregroundStyle(tnf.permanent ? .green : .red)
           }
           .accessibilityElement(children: .ignore)
-          .accessibilityLabel("ID \(tnf.id), Frequency \(tnf.frequency), Width \(tnf.width), Depth \(tnf.depth.rawValue), Permanent \(tnf.permanent ? "yes" : "no")")
+          .accessibilityLabel("ID \(tnf.id), Frequency \(tnf.frequency), Width \(tnf.width), Depth \(tnf.depth), Permanent \(tnf.permanent ? "yes" : "no")")
         }
         
       } else {
@@ -88,4 +88,3 @@ private struct HeaderView: View {
   
     .frame(minWidth: 1000)
 }
-
